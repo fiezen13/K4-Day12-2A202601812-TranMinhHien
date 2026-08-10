@@ -10,17 +10,17 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo K4-DAY12-...) |
+| Họ và tên | Trần Minh Hiển |
+| Mã học viên | 2A202601812 |
+| Repo | https://github.com/fiezen13/K4-DAY12-2A202601812-TranMinhHien |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
-| Ngày deploy | (điền ngày) |
+| Public URL | https://day12-chat-krrv.onrender.com |
+| Platform | Render |
+| Ngày deploy | 2026-08-10 |
 
 ## Biến Môi Trường Đã Set Trên Cloud
 
@@ -30,7 +30,7 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 |------|--------|---------|
 | `PORT` | ✅ | platform tự gán |
 | `API_TOKEN` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
+| `REDIS_URL` | ✅ | Render Redis service (`day12-chat-redis`) |
 | `BUCKET_CAPACITY` | ✅ | 10 |
 | `REFILL_PER_MINUTE` | ✅ | 10 |
 | `DAILY_BUDGET_USD` | ✅ | 1.0 |
@@ -38,22 +38,22 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 
 ## Lệnh Kiểm Tra
 
-Thay `<URL>` bằng Public URL ở trên:
+Các lệnh dưới đây dùng Public URL ở trên:
 
 ```bash
 # 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i <URL>/healthz
+curl -i https://day12-chat-krrv.onrender.com/healthz
 
 # 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i <URL>/readyz
+curl -i https://day12-chat-krrv.onrender.com/readyz
 
 # 3. Không có token — mong đợi 401 kèm header WWW-Authenticate
-curl -i -X POST <URL>/chat \
+curl -i -X POST https://day12-chat-krrv.onrender.com/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"Hello"}'
 
 # 4. Có token — mong đợi 200 kèm câu trả lời
-curl -i -X POST <URL>/chat \
+curl -i -X POST https://day12-chat-krrv.onrender.com/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -H "X-Client-Id: sv-test" \
@@ -61,7 +61,7 @@ curl -i -X POST <URL>/chat \
 
 # 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
 for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST <URL>/chat \
+  curl -s -o /dev/null -w "%{http_code} " -X POST https://day12-chat-krrv.onrender.com/chat \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $API_TOKEN" \
     -H "X-Client-Id: sv-test" \
@@ -74,7 +74,21 @@ done; echo
 Dán output của các lệnh trên vào đây:
 
 ```
-(điền output)
+GET /healthz
+HTTP 200
+{"status":"ok","service":"day12-chat-service","version":"1.0.0"}
+
+GET /readyz
+HTTP 200
+{"status":"ready","redis":true}
+
+POST /chat (không có Authorization)
+HTTP 401
+{"detail":"invalid or missing bearer token"}
+
+POST /chat (Bearer token hợp lệ, token không được ghi vào tài liệu)
+HTTP 200
+{"client_id":"cp5-test","turns_before":0,"usd_cost":0.00002145,"usage":{"prompt":3,"completion":35}}
 ```
 
 ## Ảnh Chụp Màn Hình
@@ -83,20 +97,11 @@ Dán output của các lệnh trên vào đây:
 
 - `screenshots/dashboard.png` — trang quản lý service trên platform
 - `screenshots/healthz.png` — kết quả gọi `/healthz` từ trình duyệt hoặc curl
+- `screenshots/service-ui.png` — giao diện demo đang chạy trên Render
 
 ---
 
-## Nếu Dùng Phương Án Dự Phòng
+## Phương Án Dự Phòng
 
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
-```
+Không sử dụng. Service đã được deploy công khai trên Render và kết nối thành
+công tới Redis của Render.
