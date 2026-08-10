@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Giao diện demo chat service với health check, xác thực, rate limit và cost guard.">
+  <title>CloudChat Lab · Bảng điều khiển</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="CloudChat Lab">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7.2 17.8c-2.6 0-4.7-1.9-4.7-4.3 0-2.1 1.7-3.9 3.9-4.2C7.1 6.3 9.6 4 12.8 4c3.8 0 6.8 3 6.8 6.6 1.2.7 1.9 1.9 1.9 3.3 0 2.2-1.9 3.9-4.3 3.9h-10Z"/><path d="m9 13 2 2 4-5"/></svg>
+        </span>
+        <span>
+          <strong>CloudChat</strong>
+          <small>Production Lab</small>
+        </span>
+      </a>
+
+      <div class="topbar-actions">
+        <div class="environment-pill"><span></span> Render · Production</div>
+        <button class="icon-button" id="refreshStatus" type="button" title="Kiểm tra lại trạng thái" aria-label="Kiểm tra lại trạng thái">
+          <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="hero-panel">
+        <div>
+          <p class="eyebrow">K4 · Day 12 · Cloud Services & Deployment</p>
+          <h1>Chat service sẵn sàng<br><span>cho môi trường thật.</span></h1>
+          <p class="hero-copy">Trò chuyện và quan sát trực tiếp cách xác thực, giới hạn tốc độ, bảo vệ chi phí và Redis phối hợp trong một request.</p>
+        </div>
+
+        <div class="health-grid" aria-label="Trạng thái hệ thống">
+          <article class="health-card loading" id="healthCard">
+            <div class="health-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+            </div>
+            <div><small>Ứng dụng</small><strong id="healthText">Đang kiểm tra…</strong></div>
+            <span class="status-dot"></span>
+          </article>
+          <article class="health-card loading" id="readyCard">
+            <div class="health-icon">
+              <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+            </div>
+            <div><small>Kho dữ liệu Redis</small><strong id="readyText">Đang kiểm tra…</strong></div>
+            <span class="status-dot"></span>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <article class="chat-panel panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Trò chuyện</p>
+              <h2>Thử nghiệm hội thoại</h2>
+            </div>
+            <button class="text-button" id="clearChat" type="button">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 10v6m4-6v6"/></svg>
+              Xóa màn hình
+            </button>
+          </div>
+
+          <div class="messages" id="messages" aria-live="polite">
+            <div class="welcome-message">
+              <div class="bot-avatar">C</div>
+              <div>
+                <strong>Xin chào, mình là CloudChat.</strong>
+                <p>Hãy nhập token, chọn mã người dùng và gửi một câu hỏi. Mình sẽ cho bạn thấy service xử lý request như thế nào.</p>
+                <div class="suggestions">
+                  <button type="button" data-prompt="Docker giúp ích gì khi triển khai ứng dụng?">Docker giúp ích gì?</button>
+                  <button type="button" data-prompt="Vì sao ứng dụng cần Redis?">Vì sao cần Redis?</button>
+                  <button type="button" data-prompt="Rate limit hoạt động như thế nào?">Rate limit là gì?</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <form class="composer" id="chatForm">
+            <label class="sr-only" for="messageInput">Tin nhắn</label>
+            <textarea id="messageInput" rows="1" maxlength="2000" placeholder="Nhập câu hỏi của bạn…"></textarea>
+            <div class="composer-footer">
+              <span id="characterCount">0 / 2.000</span>
+              <span class="keyboard-hint"><kbd>Enter</kbd> để gửi</span>
+              <button class="send-button" id="sendButton" type="submit">
+                <span>Gửi</span>
+                <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg>
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <aside class="control-column">
+          <section class="panel settings-panel">
+            <div class="panel-heading compact">
+              <div>
+                <p class="section-kicker">Danh tính request</p>
+                <h2>Cấu hình thử nghiệm</h2>
+              </div>
+              <span class="secure-badge">
+                <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5z"/></svg>
+                Chỉ lưu trong phiên
+              </span>
+            </div>
+
+            <label class="field-label" for="tokenInput">API token</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-4 4 3 3m-6 0 3 3"/></svg>
+              <input id="tokenInput" type="password" autocomplete="off" placeholder="Dán token của service">
+              <button id="toggleToken" type="button" aria-label="Hiện hoặc ẩn token">
+                <svg class="eye-open" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+
+            <label class="field-label" for="clientInput">Mã người dùng</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+              <input id="clientInput" type="text" value="sv-demo" maxlength="80" placeholder="Ví dụ: sv-demo">
+            </div>
+            <p class="field-help">Đổi mã này để tạo một lịch sử và hạn mức riêng.</p>
+          </section>
+
+          <section class="panel metrics-panel">
+            <div class="panel-heading compact">
+              <div>
+                <p class="section-kicker">Phiên hiện tại</p>
+                <h2>Số liệu sử dụng</h2>
+              </div>
+            </div>
+            <div class="metric-grid">
+              <div class="metric"><span>Lượt thành công</span><strong id="successMetric">0</strong></div>
+              <div class="metric"><span>Tin đã ghi nhớ</span><strong id="historyMetric">0</strong></div>
+              <div class="metric wide"><span>Chi phí mock trong phiên</span><strong id="costMetric">$0.000000</strong></div>
+            </div>
+          </section>
+
+          <section class="panel test-panel">
+            <div class="panel-heading compact">
+              <div>
+                <p class="section-kicker">Kịch bản nhanh</p>
+                <h2>Kiểm tra lớp bảo vệ</h2>
+              </div>
+            </div>
+
+            <div class="test-list">
+              <button class="test-action" id="testAuth" type="button">
+                <span class="test-icon amber"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9 12h6"/></svg></span>
+                <span><strong>Thử không có token</strong><small>Kỳ vọng service từ chối với 401</small></span>
+                <svg class="arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <button class="test-action" id="testValidation" type="button">
+                <span class="test-icon blue"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/></svg></span>
+                <span><strong>Gửi nội dung rỗng</strong><small>Kỳ vọng kiểm tra dữ liệu trả 422</small></span>
+                <svg class="arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <button class="test-action" id="testRateLimit" type="button">
+                <span class="test-icon coral"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></span>
+                <span><strong>Gửi nhanh 15 yêu cầu</strong><small>Quan sát giới hạn tốc độ 429</small></span>
+                <svg class="arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+            <div class="test-result hidden" id="testResult" aria-live="polite"></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      <span>Day 12 Production Chat Lab</span>
+      <span>FastAPI · Redis · Render</span>
+    </footer>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
