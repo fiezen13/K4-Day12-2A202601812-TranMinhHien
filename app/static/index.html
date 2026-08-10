@@ -40,7 +40,11 @@
         <div>
           <p class="eyebrow">K4 · Day 12 · Cloud Services & Deployment</p>
           <h1>Chat service sẵn sàng<br><span>cho môi trường thật.</span></h1>
-          <p class="hero-copy">Trò chuyện và quan sát trực tiếp cách xác thực, giới hạn tốc độ, bảo vệ chi phí và Redis phối hợp trong một request.</p>
+          <p class="hero-copy">Trò chuyện và quan sát response thật từ service: xác thực, giới hạn tốc độ, validation và lịch sử Redis.</p>
+          <div class="data-legend">
+            <span class="real"><i></i><strong>Chạy thật:</strong> API, Redis, auth, rate limit</span>
+            <span class="simulated"><i></i><strong>Mô phỏng:</strong> câu trả lời LLM, token, chi phí</span>
+          </div>
         </div>
 
         <div class="health-grid" aria-label="Trạng thái hệ thống">
@@ -79,7 +83,7 @@
               <div class="bot-avatar">C</div>
               <div>
                 <strong>Xin chào, mình là CloudChat.</strong>
-                <p>Hãy nhập token, chọn mã người dùng và gửi một câu hỏi. Mình sẽ cho bạn thấy service xử lý request như thế nào.</p>
+                <p>Hãy nhập token, chọn mã người dùng và gửi một câu hỏi. Các kiểm tra hệ thống bên phải cũng sẽ báo cáo kết quả thật ngay trong cuộc trò chuyện này.</p>
                 <div class="suggestions">
                   <button type="button" data-prompt="Docker giúp ích gì khi triển khai ứng dụng?">Docker giúp ích gì?</button>
                   <button type="button" data-prompt="Vì sao ứng dụng cần Redis?">Vì sao cần Redis?</button>
@@ -143,7 +147,8 @@
             <div class="metric-grid">
               <div class="metric"><span>Lượt thành công</span><strong id="successMetric">0</strong></div>
               <div class="metric"><span>Tin đã ghi nhớ</span><strong id="historyMetric">0</strong></div>
-              <div class="metric wide"><span>Chi phí mock trong phiên</span><strong id="costMetric">$0.000000</strong></div>
+              <div class="metric"><span>HTTP gần nhất</span><strong id="statusMetric">—</strong></div>
+              <div class="metric"><span>Độ trễ gần nhất</span><strong id="latencyMetric">—</strong></div>
             </div>
           </section>
 
@@ -171,8 +176,12 @@
                 <span><strong>Gửi nhanh 15 yêu cầu</strong><small>Quan sát giới hạn tốc độ 429</small></span>
                 <svg class="arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
               </button>
+              <button class="test-action" id="testRedis" type="button">
+                <span class="test-icon green"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+                <span><strong>Chứng minh Redis ghi nhớ</strong><small>Gửi 2 lượt và đối chiếu lịch sử</small></span>
+                <svg class="arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
             </div>
-            <div class="test-result hidden" id="testResult" aria-live="polite"></div>
           </section>
         </aside>
       </section>
